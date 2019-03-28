@@ -18,7 +18,7 @@
           </ul>
 
           <ul class="nav navbar-nav navbar-right">
-            {% if user %}
+            {% if session.uid %}
               <li><a href="/dashboard">Dashboard</a></li>
               <li><a href="/logout">Logout</a></li>
             {% else %}
