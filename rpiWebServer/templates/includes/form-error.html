@@ -1,0 +1,11 @@
+{% block body %}
+
+{% if errorMessage %}
+    <div class="row form-error mb-3">
+        <div class="col">
+            {{ errorMessage }}
+        </div>
+    </div>
+{% endif %}
+
+{% endblock %}
