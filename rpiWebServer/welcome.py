@@ -1,10 +1,14 @@
 from flask import Flask, render_template, request, flash, redirect, url_for, session, logging
 import json
 import pyrebase
+import RPi.GPIO as GPIO
+import time
+import signal
+import sys
 
 welcome = Flask(__name__)
 
-welcome.secret_key = "Saurabh mehnat to karni padegi"
+welcome.secret_key = "home automation system"
 config = {
     'apiKey': "AIzaSyBtQ3RAYAwHmXlLf5SUkXUOPfKUt-0jgOs",
     'authDomain': "iothome-6bab7.firebaseapp.com",
@@ -19,14 +23,7 @@ pyre_base = pyrebase.initialize_app(config)
 auth = pyre_base.auth()
 
 database = pyre_base.database()
-
-
 # python_firebase = firebase.FirebaseApplication(config["https://iothome-6bab7.firebaseio.com"], None)
-
-import RPi.GPIO as GPIO
-from flask import Flask, render_template, request
-
-app = Flask(__name__)
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
@@ -34,6 +31,8 @@ GPIO.setwarnings(False)
 # define sensors GPIOs
 button = 20
 senPIR = 16
+pinTrigger = 18
+pinEcho = 24
 
 # define actuators GPIOs
 ledRed = 17
@@ -62,6 +61,57 @@ GPIO.output(ledYlw, GPIO.LOW)
 GPIO.output(ledGrn, GPIO.LOW)
 
 
+# The function below is executed when someone requests a URL with the actuator name and action in it:
+@welcome.route("/index")
+def index():
+    # Read GPIO Status
+    buttonSts = GPIO.input(button)
+    senPIRSts = GPIO.input(senPIR)
+    ledRedSts = GPIO.input(ledRed)
+    ledYlwSts = GPIO.input(ledYlw)
+    ledGrnSts = GPIO.input(ledGrn)
+
+    templateData = {
+        'button': buttonSts,
+        'senPIR': senPIRSts,
+        'ledRed': ledRedSts,
+        'ledYlw': ledYlwSts,
+        'ledGrn': ledGrnSts,
+    }
+    return render_template('index.html', **templateData)
+
+
+@welcome.route("/<deviceName>/<action>")
+def action(deviceName, action):
+    if deviceName == 'ledRed':
+        actuator = ledRed
+    if deviceName == 'ledYlw':
+        actuator = ledYlw
+    if deviceName == 'ledGrn':
+        actuator = ledGrn
+
+    if action == "on":
+        GPIO.output(actuator, GPIO.HIGH)
+    if action == "off":
+        GPIO.output(actuator, GPIO.LOW)
+
+    database.child("device").set({deviceName:action})
+    buttonSts = GPIO.input(button)
+    senPIRSts = GPIO.input(senPIR)
+    ledRedSts = GPIO.input(ledRed)
+    ledYlwSts = GPIO.input(ledYlw)
+    ledGrnSts = GPIO.input(ledGrn)
+
+    templateData = {
+        'button': buttonSts,
+        'senPIR': senPIRSts,
+        'ledRed': ledRedSts,
+        'ledYlw': ledYlwSts,
+        'ledGrn': ledGrnSts,
+    }
+    return render_template('index.html', **templateData)
+
+
 @welcome.route('/')
 def landing_page():
     return render_template('home.html')
@@ -79,11 +129,12 @@ def registration():
         name = request.form['name']
         email = request.form['email']
         password = request.form['password']
+        mobile = request.form['mobile']
         try:
             user = auth.create_user_with_email_and_password(email, password)
             uid = user['localId']
             print(uid)
-            data = {"name": name, "status": "1",'email':email}
+            data = {"name": name, "status": "1", 'email':email, 'mobile':mobile}
             database.child("member").child(uid).child("details").set(data)
             return redirect(url_for('login_page', r="done"))
         except Exception as e:
@@ -118,55 +169,17 @@ def logout():
     return redirect(url_for('landing_page'))
 
 
-@app.route("/")
-def index():
-    # Read GPIO Status
-    buttonSts = GPIO.input(button)
-    senPIRSts = GPIO.input(senPIR)
-    ledRedSts = GPIO.input(ledRed)
-    ledYlwSts = GPIO.input(ledYlw)
-    ledGrnSts = GPIO.input(ledGrn)
-
-    templateData = {
-        'button': buttonSts,
-        'senPIR': senPIRSts,
-        'ledRed': ledRedSts,
-        'ledYlw': ledYlwSts,
-        'ledGrn': ledGrnSts,
-    }
-    return render_template('index.html', **templateData)
-
-
-# The function below is executed when someone requests a URL with the actuator name and action in it:
-@app.route("/<deviceName>/<action>")
-def action(deviceName, action):
-    if deviceName == 'ledRed':
-        actuator = ledRed
-    if deviceName == 'ledYlw':
-        actuator = ledYlw
-    if deviceName == 'ledGrn':
-        actuator = ledGrn
-
-    if action == "on":
-        GPIO.output(actuator, GPIO.HIGH)
-    if action == "off":
-        GPIO.output(actuator, GPIO.LOW)
-
-    db.child("device").set({deviceName;action})
-    buttonSts = GPIO.input(button)
-    senPIRSts = GPIO.input(senPIR)
-    ledRedSts = GPIO.input(ledRed)
-    ledYlwSts = GPIO.input(ledYlw)
-    ledGrnSts = GPIO.input(ledGrn)
-
-    templateData = {
-        'button': buttonSts,
-        'senPIR': senPIRSts,
-        'ledRed': ledRedSts,
-        'ledYlw': ledYlwSts,
-        'ledGrn': ledGrnSts,
-    }
-    return render_template('index.html', **templateData)
+@welcome.route('/reset-password', methods=['GET', 'POST'])
+def  reset_password():
+    errorMessage = ''
+    if request.method == 'POST':
+        email = request.form['email']
+        try:
+            auth.send_password_reset_email(email)
+            return render_template('display-message.html', message='A password reset email will be sent to you shortly.')
+        except:
+            errorMessage = 'Invalid email'
+    return render_template('reset-password.html', errorMessage=errorMessage, user=None)
 
 
 if __name__ == "__main__":
