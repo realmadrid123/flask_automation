@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, flash, redirect, url_for, session, logging
 import json
 import pyrebase
-import RPi.GPIO as GPIO
+#import RPi.GPIO as GPIO
 import time
 import signal
 import sys
@@ -25,8 +25,8 @@ auth = pyre_base.auth()
 database = pyre_base.database()
 # python_firebase = firebase.FirebaseApplication(config["https://iothome-6bab7.firebaseio.com"], None)
 
-GPIO.setmode(GPIO.BCM)
-GPIO.setwarnings(False)
+#GPIO.setmode(GPIO.BCM)
+#GPIO.setwarnings(False)
 
 # define sensors GPIOs
 button = 20
@@ -47,69 +47,69 @@ ledYlwSts = 0
 ledGrnSts = 0
 
 # Define button and PIR sensor pins as an input
-GPIO.setup(button, GPIO.IN)
-GPIO.setup(senPIR, GPIO.IN)
+#GPIO.setup(button, GPIO.IN)
+#GPIO.setup(senPIR, GPIO.IN)
 
 # Define led pins as output
-GPIO.setup(ledRed, GPIO.OUT)
-GPIO.setup(ledYlw, GPIO.OUT)
-GPIO.setup(ledGrn, GPIO.OUT)
+#GPIO.setup(ledRed, GPIO.OUT)
+#GPIO.setup(ledYlw, GPIO.OUT)
+#GPIO.setup(ledGrn, GPIO.OUT)
 
 # turn leds OFF
-GPIO.output(ledRed, GPIO.LOW)
-GPIO.output(ledYlw, GPIO.LOW)
-GPIO.output(ledGrn, GPIO.LOW)
+#GPIO.output(ledRed, GPIO.LOW)
+#GPIO.output(ledYlw, GPIO.LOW)
+#GPIO.output(ledGrn, GPIO.LOW)
 
 
 # The function below is executed when someone requests a URL with the actuator name and action in it:
-@welcome.route("/index")
-def index():
+#@welcome.route("/index")
+#def index():
     # Read GPIO Status
-    buttonSts = GPIO.input(button)
-    senPIRSts = GPIO.input(senPIR)
-    ledRedSts = GPIO.input(ledRed)
-    ledYlwSts = GPIO.input(ledYlw)
-    ledGrnSts = GPIO.input(ledGrn)
+    #buttonSts = GPIO.input(button)
+    #senPIRSts = GPIO.input(senPIR)
+    #ledRedSts = GPIO.input(ledRed)
+    #ledYlwSts = GPIO.input(ledYlw)
+    #ledGrnSts = GPIO.input(ledGrn)
 
-    templateData = {
-        'button': buttonSts,
-        'senPIR': senPIRSts,
-        'ledRed': ledRedSts,
-        'ledYlw': ledYlwSts,
-        'ledGrn': ledGrnSts,
-    }
-    return render_template('index.html', **templateData)
+    #templateData = {
+        #'button': buttonSts,
+        #'senPIR': senPIRSts,
+        #'ledRed': ledRedSts,
+        #'ledYlw': ledYlwSts,
+        #'ledGrn': ledGrnSts,
+    #}
+    #return render_template('index.html', **templateData)
 
 
-@welcome.route("/<deviceName>/<action>")
-def action(deviceName, action):
-    if deviceName == 'ledRed':
-        actuator = ledRed
-    if deviceName == 'ledYlw':
-        actuator = ledYlw
-    if deviceName == 'ledGrn':
-        actuator = ledGrn
+#@welcome.route("/<deviceName>/<action>")
+#def action(deviceName, action):
+    #if deviceName == 'ledRed':
+        #actuator = ledRed
+    #if deviceName == 'ledYlw':
+        #actuator = ledYlw
+    #if deviceName == 'ledGrn':
+        #actuator = ledGrn
 
-    if action == "on":
-        GPIO.output(actuator, GPIO.HIGH)
-    if action == "off":
-        GPIO.output(actuator, GPIO.LOW)
+    #if action == "on":
+        #GPIO.output(actuator, GPIO.HIGH)
+    #if action == "off":
+        #GPIO.output(actuator, GPIO.LOW)
 
-    database.child("device").set({deviceName:action})
-    buttonSts = GPIO.input(button)
-    senPIRSts = GPIO.input(senPIR)
-    ledRedSts = GPIO.input(ledRed)
-    ledYlwSts = GPIO.input(ledYlw)
-    ledGrnSts = GPIO.input(ledGrn)
+    #database.child("device").set({deviceName:action})
+    #buttonSts = GPIO.input(button)
+    #senPIRSts = GPIO.input(senPIR)
+    #ledRedSts = GPIO.input(ledRed)
+    #ledYlwSts = GPIO.input(ledYlw)
+    #ledGrnSts = GPIO.input(ledGrn)
 
-    templateData = {
-        'button': buttonSts,
-        'senPIR': senPIRSts,
-        'ledRed': ledRedSts,
-        'ledYlw': ledYlwSts,
-        'ledGrn': ledGrnSts,
-    }
-    return render_template('index.html', **templateData)
+    #templateData = {
+        #'button': buttonSts,
+        #'senPIR': senPIRSts,
+        #'ledRed': ledRedSts,
+        #'ledYlw': ledYlwSts,
+        #'ledGrn': ledGrnSts,
+    #}
+    #return render_template('index.html', **templateData)
 
 
 @welcome.route('/')
