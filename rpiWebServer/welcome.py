@@ -130,11 +130,12 @@ def registration():
         email = request.form['email']
         password = request.form['password']
         mobile = request.form['mobile']
+        address = request.form['address']
         try:
             user = auth.create_user_with_email_and_password(email, password)
             uid = user['localId']
             print(uid)
-            data = {"name": name, "status": "1", 'email':email, 'mobile':mobile}
+            data = {"name": name, "status": "1", 'email': email, 'mobile': mobile, "address":address}
             database.child("member").child(uid).child("details").set(data)
             return redirect(url_for('login_page', r="done"))
         except Exception as e:

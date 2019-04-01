@@ -57,19 +57,6 @@ def index():
     }
     return render_template('index.html', **templateData)
 
-@welcome.route("/index")
-def close(signal, frame):
-	print("\nTurning off ultrasonic distance detection...\n")
-	GPIO.cleanup()
-	sys.exit(0)
-
-signal.signal(signal.SIGINT, close)
-
-# set GPIO input and output channels
-GPIO.setup(pinTrigger, GPIO.OUT)
-GPIO.setup(pinEcho, GPIO.IN)
-
-
 
 @welcome.route("/<deviceName>/<action>")
 def action(deviceName, action):
@@ -100,6 +87,20 @@ def action(deviceName, action):
         'ledGrn': ledGrnSts,
     }
     return render_template('index.html', **templateData)
+
+
+@welcome.route("/index")
+def close(signal, frame):
+	print("\nTurning off ultrasonic distance detection...\n")
+	GPIO.cleanup()
+	sys.exit(0)
+
+signal.signal(signal.SIGINT, close)
+
+# set GPIO input and output channels
+GPIO.setup(pinTrigger, GPIO.OUT)
+GPIO.setup(pinEcho, GPIO.IN)
+
 
 while True:
 	# set Trigger to HIGH
